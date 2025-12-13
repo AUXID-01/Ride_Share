@@ -14,41 +14,21 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<?> handleBadRequest(BadRequestException ex) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("error", "BAD_REQUEST");
-        error.put("message", ex.getMessage());
-        error.put("timestamp", Instant.now());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<?> handleNotFound(NotFoundException ex) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("error", "NOT_FOUND");
-        error.put("message", ex.getMessage());
-        error.put("timestamp", Instant.now());
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, Object> error = new HashMap<>();
         error.put("error", "VALIDATION_ERROR");
-        FieldError fieldError = ex.getBindingResult().getFieldError();
-        error.put("message", fieldError != null ? fieldError.getDefaultMessage() : "Invalid input");
-        error.put("timestamp", Instant.now());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        error.put("message", ex.getBindingResult().getFieldError().getDefaultMessage());
+        error.put("timestamp", Instant.now().toString());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleOtherExceptions(Exception ex) {
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
         Map<String, Object> error = new HashMap<>();
-        error.put("error", "INTERNAL_ERROR");
+        error.put("error", "RUNTIME_ERROR");
         error.put("message", ex.getMessage());
-        error.put("timestamp", Instant.now());
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        error.put("timestamp", Instant.now().toString());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }
-

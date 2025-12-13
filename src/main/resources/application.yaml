@@ -1,7 +1,15 @@
+server:
+  port: 8002
+
 spring:
   application:
     name: demo
-  mongodb:
-    uri: mongodb://localhost:27017/rideshare_db
-server:
-  port: 8002
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/rideshare_db
+      auto-index-creation: true
+
+jwt:
+  secret: my_super_secret_256bit_key_which_you_should_change
+  expiration: 86400000 # 1 day in milliseconds

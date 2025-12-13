@@ -3,89 +3,40 @@ package com.ayush.demo.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
-
 @Document(collection = "rides")
 public class Ride {
-
     @Id
     private String id;
 
-    private String userId;    // Passenger
-    private String driverId;  // Driver (nullable)
+    private String passengerUsername;
+    private String driverUsername;
 
     private String pickupLocation;
     private String dropLocation;
 
-    private String status;    // REQUESTED / ACCEPTED / COMPLETED
-    private Date createdAt;
+    private Double fare;
+    private String status;  // REQUESTED, ACCEPTED, COMPLETED
 
-    public Ride() {
-        this.createdAt = new Date();
-        this.status = "REQUESTED";
-    }
+    public Ride() {}
 
-    public Ride(String userId, String pickupLocation, String dropLocation) {
-        this.userId = userId;
-        this.pickupLocation = pickupLocation;
-        this.dropLocation = dropLocation;
-        this.status = "REQUESTED";
-        this.createdAt = new Date();
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public String getId() {
-        return id;
-    }
+    public String getPassengerUsername() { return passengerUsername; }
+    public void setPassengerUsername(String passengerUsername) { this.passengerUsername = passengerUsername; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getDriverUsername() { return driverUsername; }
+    public void setDriverUsername(String driverUsername) { this.driverUsername = driverUsername; }
 
-    public String getUserId() {
-        return userId;
-    }
+    public String getPickupLocation() { return pickupLocation; }
+    public void setPickupLocation(String pickupLocation) { this.pickupLocation = pickupLocation; }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    public String getDropLocation() { return dropLocation; }
+    public void setDropLocation(String dropLocation) { this.dropLocation = dropLocation; }
 
-    public String getDriverId() {
-        return driverId;
-    }
+    public Double getFare() { return fare; }
+    public void setFare(Double fare) { this.fare = fare; }
 
-    public void setDriverId(String driverId) {
-        this.driverId = driverId;
-    }
-
-    public String getPickupLocation() {
-        return pickupLocation;
-    }
-
-    public void setPickupLocation(String pickupLocation) {
-        this.pickupLocation = pickupLocation;
-    }
-
-    public String getDropLocation() {
-        return dropLocation;
-    }
-
-    public void setDropLocation(String dropLocation) {
-        this.dropLocation = dropLocation;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

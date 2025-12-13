@@ -1,49 +1,45 @@
 package com.ayush.demo.controller;
 
-import jakarta.validation.Valid;
-import com.ayush.demo.dto.LoginRequest;
-import com.ayush.demo.dto.RegisterRequest;
-import com.ayush.demo.service.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import com.ayush.demo.model.User;
+import com.ayush.demo.model.AuthRequest;
+import com.ayush.demo.service.UserService;
+import com.ayush.demo.util.JwtUtil;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthenticationManager manager;
+    private final UserService service;
+    private final JwtUtil jwt;
+
+    public AuthController(AuthenticationManager m, UserService s, JwtUtil j) {
+        this.manager = m; this.service = s; this.jwt = j;
+    }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        String result = authService.register(request);
-        return ResponseEntity.ok(result);
+    public User register(@RequestBody User user) {
+        // Basic validation: role must be present
+        if (user.getRole() == null || (!user.getRole().equals("ROLE_DRIVER") && !user.getRole().equals("ROLE_USER"))) {
+            throw new IllegalArgumentException("role must be ROLE_DRIVER or ROLE_USER");
+        }
+        return service.register(user.getUsername(), user.getPassword(), user.getRole());
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        String token = authService.login(request);
-        return ResponseEntity.ok(token);
+    public Map<String, String> login(@RequestBody AuthRequest req) {
+        manager.authenticate(
+                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
+        );
+        UserDetails details = service.loadUserByUsername(req.getUsername());
+        String role = details.getAuthorities().iterator().next().getAuthority();
+        String token = jwt.generateToken(req.getUsername(), role);
+        return Map.of("token", token);
     }
-    @GetMapping("/test")
-    public ResponseEntity<?> testAuth() {
-        // This will return the username of the currently logged-in user
-        String username = org.springframework.security.core.context.SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-
-        String role = org.springframework.security.core.context.SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getAuthorities()
-                .stream()
-                .findFirst()
-                .map(Object::toString)
-                .orElse("ROLE_UNKNOWN");
-
-        return ResponseEntity.ok("Hello " + username + ", your role is " + role);
-    }
-
 }

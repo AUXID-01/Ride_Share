@@ -1,58 +1,61 @@
-package com.ayush.demo.util;
+package com.example.rideshare.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Value;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
 
-    @Value("${rideshare.jwt.secret:MY_SECRET_KEY_1234567890123456}")
-    private String SECRET;  // Must be at least 32 chars for HS256
+    // 256-bit secret key
+    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-    @Value("${rideshare.jwt.expiration-ms:86400000}")
-    private long expirationMs;
+    // 24 hours expiry
+    private final long EXPIRATION = 1000 * 60 * 60 * 24;
 
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-    }
-
+    // Generate token for username + role
     public String generateToken(String username, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(username)
-                .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .signWith(key)
                 .compact();
     }
 
+    // Extract username
     public String extractUsername(String token) {
-        return getClaims(token).getSubject();
+        return extractAllClaims(token).getSubject();
     }
 
+    // Extract role
     public String extractRole(String token) {
-        return (String) getClaims(token).get("role");
+        return (String) extractAllClaims(token).get("role");
     }
 
+    // Validate token
     public boolean validateToken(String token, String username) {
         return extractUsername(token).equals(username) && !isExpired(token);
     }
 
     private boolean isExpired(String token) {
-        return getClaims(token).getExpiration().before(new Date());
+        return extractAllClaims(token).getExpiration().before(new Date());
     }
 
-    private Claims getClaims(String token) {
+    private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+                .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
